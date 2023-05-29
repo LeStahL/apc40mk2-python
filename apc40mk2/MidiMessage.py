@@ -56,11 +56,16 @@ class MidiMessage:
     def isNoteOff(self) -> bool:
         return self.type == 'note_off'
     
+    def isController(self) -> bool:
+        return self.type == 'controller'
+
     def messageTypeString(self) -> str:
         if self.type == 'note_on':
             return 'NoteOn'
         elif self.type == 'note_off':
             return 'NoteOff'
+        elif self.type == 'controller':
+            return 'Controller'
         else:
             return 'Unknown'
 

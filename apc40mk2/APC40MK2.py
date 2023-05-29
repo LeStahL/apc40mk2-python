@@ -7,7 +7,7 @@ from .Button import Button, ButtonCapabilities, Buttons
 from .RGBLEDColor import RGBLEDColor
 from .RGBLEDMode import RGBLEDMode
 from .MidiMessage import MidiMessage
-from .Controller import Controller, ControllerCapabilities
+from .Controller import Controller, ControllerCapabilities, Controllers
 from .LEDRingType import LEDRingType
 
 class APC40MK2:
@@ -20,6 +20,7 @@ class APC40MK2:
         self._controllerValueModificationQueue = Queue()
         self._controllerTypeModificationQueue = Queue()
         self._buttonCallback = None
+        self._controllerCallback = None
 
     def abort(self) -> None:
         self._abort = True
@@ -29,6 +30,9 @@ class APC40MK2:
 
     def setButtonCallback(self, callback: Callable) -> None:
         self._buttonCallback = callback
+
+    def setControllerCallback(self, callback: Callable) -> None:
+        self._controllerCallback = callback
 
     def setRGBButtonState(self,
         button: Button,
@@ -101,5 +105,11 @@ class APC40MK2:
                     button.channel = message.channel
                     if self._buttonCallback is not None:
                         self._buttonCallback(message, button)
+                elif message.isController():
+                    controller = deepcopy(Controllers.byNoteNumber(message.noteNumber))
+                    controller.channel = message.channel
+                    controller.value = message.velocity
+                    if self._controllerCallback is not None:
+                        self._controllerCallback(message, controller)
                 else:
                     print(messageList)

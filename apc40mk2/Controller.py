@@ -14,11 +14,13 @@ class Controller:
         capabilities: ControllerCapabilities,
         name: str,
         channel: int = 0,
+        value: int = 0,
     ) -> None:
         self.noteNumber = noteNumber
         self.capabilities = capabilities
         self.name = name
         self.channel = channel
+        self.value = value
 
 def determineCapabilities(flagStr: str) -> ControllerCapabilities:
     result = ControllerCapabilities.LEDLess

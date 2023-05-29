@@ -17,6 +17,7 @@ if __name__ == '__main__':
     midiController.setRGBButtonState(Buttons.byName("CLIP LAUNCH 13"), RGBLEDColors.nearestColor('#00ff00'), RGBLEDMode(RGBLEDModeCapabilities.Pulsing, 2))
    
     midiController.setButtonCallback(lambda message, button: print(button.name, '(Channel: {})'.format(button.channel), message.messageTypeString()))
+    midiController.setControllerCallback(lambda message, controller: print(controller.name, '(Channel: {})'.format(controller.channel), message.messageTypeString(), controller.value))
 
     midiController.setLEDRingControllerType(Controllers.byName("DEVICE KNOB 2 LED RING TYPE"), LEDRingType.VolumeStyle, 1)
     midiController.setLEDRingControllerValue(Controllers.byName("DEVICE KNOB 2"), 0x7F, 1)
