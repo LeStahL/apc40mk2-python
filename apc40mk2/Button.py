@@ -51,4 +51,14 @@ class Buttons:
                 Buttons.allButtons,
             ))[0]
         except:
-            raise KeyError('Key `{}` is not a valid RGB LED button name.'.format(key))
+            raise KeyError('Key `{}` is not a valid button name.'.format(key))
+
+    @staticmethod
+    def byNoteNumber(key: int):
+        try:
+            return list(filter(
+                lambda button: button.noteNumber == key,
+                Buttons.allButtons,
+            ))[0]
+        except:
+            raise KeyError('Note number `{}` is not a valid button note number.'.format(key))

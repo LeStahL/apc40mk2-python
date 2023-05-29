@@ -31,14 +31,13 @@ class MidiMessage:
     def parse(data: bytes):
         parsed = MidiMessage.BinaryFormat.parse(data)
         return MidiMessage(
-            parsed['midi_message']['type'],
-            parsed['midi_message']['channel'],
-            parsed['midi_message']['note_number'],
-            parsed['midi_message']['velocity'],
+            parsed['type'],
+            parsed['channel'],
+            parsed['note_number'],
+            parsed['velocity'],
         )
     
     def serialize(self) -> bytes:
-        print(self.type, self.channel, self.noteNumber, self.velocity)
         result = MidiMessage.BinaryFormat.build(
             {
                 'type': self.type,
@@ -47,5 +46,26 @@ class MidiMessage:
                 'velocity': self.velocity,
             }
         )
-        print(result)
         return result
+    
+    def isNoteOn(self) -> bool:
+        return self.type == 'note_on'
+    
+    def isNoteOff(self) -> bool:
+        return self.type == 'note_off'
+    
+    def messageTypeString(self) -> str:
+        if self.type == 'note_on':
+            return 'NoteOn'
+        elif self.type == 'note_off':
+            return 'NoteOff'
+        else:
+            return 'Unknown'
+
+    def __repr__(self) -> str:
+        return '<MidiMessage: type={}, chan={}, note={}, vel={}>'.format(
+            self.messageTypeString(),
+            self.channel,
+            self.noteNumber,
+            self.velocity,
+        )
