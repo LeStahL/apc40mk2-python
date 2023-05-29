@@ -28,7 +28,6 @@ def determineCapabilities(flagStr: str) -> ButtonCapabilities:
             result = result | buttonCapability
     return result
 
-
 class Buttons:
     allButtons = None
     with open(join(dirname(__file__), 'Buttons'), 'rt') as f:
@@ -64,5 +63,3 @@ class Buttons:
             ))[0]
         except:
             raise KeyError('Note number `{}` is not a valid button note number.'.format(key))
-
-    # def 

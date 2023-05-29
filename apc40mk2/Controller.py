@@ -1,67 +1,64 @@
-from threading import Thread
-from queue import Queue
-from pygame import midi
-from typing import Callable
-from copy import deepcopy
-from .Button import Button, ButtonCapabilities, Buttons
-from .RGBLEDColor import RGBLEDColor
-from .RGBLEDMode import RGBLEDMode
-from .MidiMessage import MidiMessage
+from os.path import dirname, join
+from enum import IntFlag
+
+class ControllerCapabilities(IntFlag):
+    LEDLess = 0x0
+    Track = 0x1
+    LEDRing = 0x2
+    Master = 0x4
+    RingType = 0x8
 
 class Controller:
-    PortName = b'APC40 mkII'
-
-    def __init__(self) -> None:
-        self._thread = Thread(target=self.loop, daemon=True)
-        self._abort = False
-        self._buttonStateModificationQueue = Queue()
-        self._buttonCallback = None
-
-    def abort(self) -> None:
-        self._abort = True
-
-    def run(self) -> None:
-        self._thread.start()
-
-    def setButtonCallback(self, callback: Callable) -> None:
-        self._buttonCallback = callback
-
-    def setRGBButtonState(self,
-        button: Button,
-        color: RGBLEDColor,
-        mode: RGBLEDMode,
+    def __init__(self,
+        noteNumber: int,
+        capabilities: ControllerCapabilities,
+        name: str,
+        channel: int = 0,
     ) -> None:
-        if not button.capabilities & ButtonCapabilities.RGB:
-            raise ValueError("Button {} does not have the RGB capability.".format(button.name))
+        self.noteNumber = noteNumber
+        self.capabilities = capabilities
+        self.name = name
+        self.channel = channel
+
+def determineCapabilities(flagStr: str) -> ControllerCapabilities:
+    result = ControllerCapabilities.LEDLess
+    for controllerCapability in ControllerCapabilities:
+        if controllerCapability.name in flagStr:
+            result = result | controllerCapability
+    return result
     
-        self._buttonStateModificationQueue.put((button, color, mode))
+class Controllers:
+    allControllers = None
+    with open(join(dirname(__file__), 'Controllers'), 'rt') as f:
+        allControllers = list(map(
+            lambda entries: Controller(
+                int(entries[0], 16) if '0x' in entries[0] else int(entries[0]),
+                determineCapabilities(entries[1]),
+                ' '.join(entries[2:]),
+            ),
+            list(map(
+                lambda line: line.strip().split(' '),
+                f.readlines(),
+            ))
+        ))
+        f.close()
 
-    def loop(self) -> None:
-        midi.init()
+    @staticmethod
+    def byName(key: str):
+        try:
+            return list(filter(
+                lambda controller: controller.name == key,
+                Controllers.allControllers,
+            ))[0]
+        except:
+            raise KeyError('Key `{}` is not a valid controller name.'.format(key))
 
-        for port in range(midi.get_count()):
-            (interface, name, input, output, opened) =  midi.get_device_info(port)
-            if input and not opened and name == Controller.PortName:
-                self.midiInput = midi.Input(port)
-
-            if output and not opened and name == Controller.PortName:
-                self.midiOutput = midi.Output(port)
-
-        while not self._abort:
-            while self._buttonStateModificationQueue.qsize() != 0:
-                (button, color, mode) = self._buttonStateModificationQueue.get()
-                self.midiOutput.write([[list(map(
-                    lambda byte: int(byte),
-                    MidiMessage(MidiMessage.NoteOn, mode.channel(), button.noteNumber, color.velocity).serialize(),
-                )), 20000]])
-
-            if self.midiInput.poll():
-                [[messageList, _]] = self.midiInput.read(1)
-                message = MidiMessage.parse(bytes(messageList))
-                if message.isNoteOff() or message.isNoteOn():
-                    button = deepcopy(Buttons.byNoteNumber(message.noteNumber))
-                    button.channel = message.channel
-                    if self._buttonCallback is not None:
-                        self._buttonCallback(message, button)
-                else:
-                    print(messageList)
+    @staticmethod
+    def byNoteNumber(key: int):
+        try:
+            return list(filter(
+                lambda controller: controller.noteNumber == key,
+                Controllers.allControllers,
+            ))[0]
+        except:
+            raise KeyError('Note number `{}` is not a valid controller note number.'.format(key))

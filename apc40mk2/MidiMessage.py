@@ -3,6 +3,7 @@ from construct import Struct, Bitwise, BitsInteger, Enum, Int8un, BitStruct, Byt
 class MidiMessage:
     NoteOn = 0x9
     NoteOff = 0x8
+    Controller = 0xB
     VelocityUnsupported = 0x7f
 
     BinaryFormat = "midi_message" / BitStruct(
@@ -10,6 +11,7 @@ class MidiMessage:
             BitsInteger(4),
             note_on = NoteOn,
             note_off = NoteOff,
+            controller = Controller,
         ),
         "channel" / BitsInteger(4),
         "note_number" / BitsInteger(8),
