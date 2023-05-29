@@ -1,21 +1,20 @@
-from construct import Struct, Bitwise, BitsInteger, Enum
-from rtmidi import MidiMessage
+from construct import Struct, Bitwise, BitsInteger, Enum, Int8un, BitStruct, ByteSwapped
 
-class NoteMessage:
+class MidiMessage:
     NoteOn = 0x9
     NoteOff = 0x8
     VelocityUnsupported = 0x7f
 
-    BinaryFormat = "note_message" / Bitwise(Struct(
+    BinaryFormat = "midi_message" / BitStruct(
         "type" / Enum(
             BitsInteger(4),
             note_on = NoteOn,
             note_off = NoteOff,
-        )
+        ),
         "channel" / BitsInteger(4),
-        "note_number" / Int8un,
-        "velocity" / Int8un,
-    ))
+        "note_number" / BitsInteger(8),
+        "velocity" / BitsInteger(8),
+    )
 
     def __init__(self,
         type: int = NoteOff,
@@ -30,24 +29,23 @@ class NoteMessage:
     
     @staticmethod
     def parse(data: bytes):
-        parsed = NoteMessage.BinaryFormat.parse(data)
-        return NoteMessage(
-            parsed['note_message']['type'],
-            parsed['note_message']['channel'],
-            parsed['note_message']['note_number'],
-            parsed['note_message']['velocity'],
+        parsed = MidiMessage.BinaryFormat.parse(data)
+        return MidiMessage(
+            parsed['midi_message']['type'],
+            parsed['midi_message']['channel'],
+            parsed['midi_message']['note_number'],
+            parsed['midi_message']['velocity'],
         )
     
     def serialize(self) -> bytes:
-        return NoteMessage.BinaryFormat.build({
-            'note_message': {
+        print(self.type, self.channel, self.noteNumber, self.velocity)
+        result = MidiMessage.BinaryFormat.build(
+            {
                 'type': self.type,
                 'channel': self.channel,
                 'note_number': self.noteNumber,
                 'velocity': self.velocity,
             }
-        })
-
-    def rtMidiMessage(self) -> MidiMessage:
-        if self.type == NoteMessage.NoteOn:
-            return MidiMessage.noteOn()
+        )
+        print(result)
+        return result

@@ -1,4 +1,5 @@
-from colormath.color_objects import sRGBColor
+from colormath.color_objects import sRGBColor, LabColor
+from colormath.color_conversions import convert_color
 from colormath.color_diff import delta_e_cie2000
 from os.path import dirname, join
 
@@ -11,7 +12,6 @@ class RGBLEDColor:
         self.name = name
         self.color = sRGBColor.new_from_rgb_hex(color)
         self.velocity = velocity
-
 
 class RGBLEDColors:
     allColors = None
@@ -30,16 +30,24 @@ class RGBLEDColors:
         f.close()
 
     @staticmethod
-    def __getitem__(key: int):
-        return RGBLEDColors.allColors[key]
-
-    @staticmethod
     def nearestColor(hex: str) -> RGBLEDColor:
-        nearestColor = RGBLEDColors[0]
+        nearestColor = RGBLEDColors.allColors[0]
         nearestDeltaE = 1.e9
-        for color in RGBLEDColors:
-            deltaE = delta_e_cie2000(color.color, sRGBColor.new_from_rgb_hex(hex))
+        hexColor = sRGBColor.new_from_rgb_hex(hex)
+        for color in RGBLEDColors.allColors:
+            # FIXME: This is bugged in colormath because of a numpy deprecation.
+            # Also: colormath is unmaintained as of now, so this is a dead end.
+            # Will use euclidean distance until this resolves; keep commented code
+            # to enable CIELAB distance again as soon as they fix it.
+            # deltaE = delta_e_cie2000(
+            #     convert_color(color.color, LabColor),
+            #     convert_color(sRGBColor.new_from_rgb_hex(hex), LabColor),
+            # )
+            deltaE = pow(color.color.rgb_r - hexColor.rgb_r, 2) + \
+                pow(color.color.rgb_g - hexColor.rgb_g, 2) + \
+                pow(color.color.rgb_b - hexColor.rgb_b, 2)
             if deltaE < nearestDeltaE:
                 nearestColor = color
+                nearestDeltaE = deltaE
         return nearestColor
 
