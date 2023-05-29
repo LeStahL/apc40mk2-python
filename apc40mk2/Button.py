@@ -14,10 +14,12 @@ class Button:
         noteNumber: int,
         capabilities: ButtonCapabilities,
         name: str,
+        channel: int = None
     ) -> None:
         self.noteNumber = noteNumber
         self.capabilities = capabilities
         self.name = name
+        self.channel = channel
 
 def determineCapabilities(flagStr: str) -> ButtonCapabilities:
     result = ButtonCapabilities.LEDLess
@@ -62,3 +64,5 @@ class Buttons:
             ))[0]
         except:
             raise KeyError('Note number `{}` is not a valid button note number.'.format(key))
+
+    # def 

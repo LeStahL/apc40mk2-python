@@ -2,6 +2,7 @@ from threading import Thread
 from queue import Queue
 from pygame import midi
 from typing import Callable
+from copy import deepcopy
 from .Button import Button, ButtonCapabilities, Buttons
 from .RGBLEDColor import RGBLEDColor
 from .RGBLEDMode import RGBLEDMode
@@ -58,7 +59,8 @@ class Controller:
                 [[messageList, _]] = self.midiInput.read(1)
                 message = MidiMessage.parse(bytes(messageList))
                 if message.isNoteOff() or message.isNoteOn():
-                    button = Buttons.byNoteNumber(message.noteNumber)
+                    button = deepcopy(Buttons.byNoteNumber(message.noteNumber))
+                    button.channel = message.channel
                     if self._buttonCallback is not None:
                         self._buttonCallback(message, button)
                 else:

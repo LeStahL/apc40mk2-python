@@ -14,7 +14,7 @@ if __name__ == '__main__':
     midiController.setRGBButtonState(Buttons.byName("CLIP LAUNCH 13"), RGBLEDColors.nearestColor('#ff0000'), RGBLEDMode(RGBLEDModeCapabilities.Primary, 1))
     midiController.setRGBButtonState(Buttons.byName("CLIP LAUNCH 13"), RGBLEDColors.nearestColor('#00ff00'), RGBLEDMode(RGBLEDModeCapabilities.Pulsing, 2))
    
-    midiController.setButtonCallback(lambda message, button: print(button.name, message.messageTypeString()))
+    midiController.setButtonCallback(lambda message, button: print(button.name, '(Channel: {})'.format(button.channel), message.messageTypeString()))
 
     while True:
         sleep(1)
