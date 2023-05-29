@@ -1,9 +1,9 @@
 from threading import Thread
 from queue import Queue
 from pygame import midi
-from .Button import Button, ButtonCapabilities, Buttons
-from .RGBLEDColor import RGBLEDColor, RGBLEDColors
-from .RGBLEDType import RGBLEDType, RGBLEDTypes
+from .Button import Button, ButtonCapabilities
+from .RGBLEDColor import RGBLEDColor
+from .RGBLEDMode import RGBLEDMode
 from .MidiMessage import MidiMessage
 
 class Controller:
@@ -23,12 +23,12 @@ class Controller:
     def setRGBButtonState(self,
         button: Button,
         color: RGBLEDColor,
-        _type: RGBLEDType,
+        mode: RGBLEDMode,
     ) -> None:
         if not button.capabilities & ButtonCapabilities.RGB:
             raise ValueError("Button {} does not have the RGB capability.".format(button.name))
     
-        self._buttonStateModificationQueue.put((button, color, _type))
+        self._buttonStateModificationQueue.put((button, color, mode))
 
     def loop(self) -> None:
         midi.init()
@@ -44,18 +44,11 @@ class Controller:
 
         while not self._abort:
             while self._buttonStateModificationQueue.qsize() != 0:
-                (button, color, _type) = self._buttonStateModificationQueue.get()
-                message = MidiMessage(MidiMessage.NoteOn, _type.toInt(), button.noteNumber, color.velocity)
-                # print(message.isNoteOn())
-                byteList = list(map(
+                (button, color, mode) = self._buttonStateModificationQueue.get()
+                self.midiOutput.write([[list(map(
                     lambda byte: int(byte),
-                    message.serialize(),
-                ))
-                print("bytelist:", byteList)
-                self.midiOutput.write([[byteList,20000]])
-                # result = self.midiOut.sendMessage(RtMidiMessage(*byteList))
-                # print("sent:", result)
-                pass
+                    MidiMessage(MidiMessage.NoteOn, mode.channel(), button.noteNumber, color.velocity).serialize(),
+                )), 20000]])
 
             if self.midiInput.poll():
                 [events] = self.midiInput.read(1)
