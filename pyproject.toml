@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "apc40mk2"
+version = "0.1.0"
+description = "Python library for communicating with Akai APC40MKII devices."
+authors = ["Alexander Kraus <nr4@z10.info>"]
+license = "GPLv3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pygame = "^2.5.2"
+construct = "^2.10.68"
+colormath = "^3.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
