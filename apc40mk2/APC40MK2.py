@@ -1,6 +1,6 @@
 from threading import Thread
 from queue import Queue
-from pygame import midi
+from pygame import midi, time
 from typing import Callable
 from copy import deepcopy
 from .Button import Button, ButtonCapabilities, Buttons
@@ -66,6 +66,7 @@ class APC40MK2:
 
     def loop(self) -> None:
         midi.init()
+        clock = time.Clock()
 
         for port in range(midi.get_count()):
             (interface, name, input, output, opened) =  midi.get_device_info(port)
@@ -113,3 +114,5 @@ class APC40MK2:
                         self._controllerCallback(message, controller)
                 else:
                     print(messageList)
+
+            clock.tick(200)
